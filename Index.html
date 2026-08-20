@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Daily Expenses</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+        background: #f5f7fa;
+        padding: 20px;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      
+      h1 {
+        color: #1a2332;
+        font-size: 28px;
+        margin-bottom: 24px;
+        border-bottom: 3px solid #4a90d9;
+        padding-bottom: 12px;
+      }
+      
+      .tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        border-bottom: 2px solid #e1e5ea;
+        padding-bottom: 12px;
+      }
+      
+      .tab-btn {
+        padding: 10px 20px;
+        background: transparent;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        color: #6b7a8f;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      
+      .tab-btn:hover {
+        background: #e8ecf1;
+        color: #1a2332;
+      }
+      
+      .tab-btn.active {
+        background: #4a90d9;
+        color: white;
+      }
+      
+      .tab-content {
+        display: none;
+        animation: fadeIn 0.3s ease;
+      }
+      
+      .tab-content.active {
+        display: block;
+      }
+      
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      
+      .card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        margin-bottom: 20px;
+      }
+      
+      .form-group {
+        margin-bottom: 20px;
+      }
+      
+      label {
+        display: block;
+        font-weight: 600;
+        color: #1a2332;
+        margin-bottom: 6px;
+        font-size: 14px;
+      }
+      
+      label .required {
+        color: #e74c3c;
+        margin-left: 4px;
+      }
+      
+      input[type="date"],
+      input[type="text"],
+      input[type="number"],
+      textarea,
+      select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 2px solid #dce1e8;
+        border-radius: 8px;
+        font-size: 15px;
+        transition: border-color 0.2s ease;
+        font-family: inherit;
+      }
+      
+      input:focus,
+      textarea:focus,
+      select:focus {
+        outline: none;
+        border-color: #4a90d9;
+        box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.1);
+      }
+      
+      textarea {
+        min-height: 100px;
+        resize: vertical;
+      }
+      
+      .btn-primary {
+        background: #4a90d9;
+        color: white;
+        border: none;
+        padding: 12px 32px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s ease;
+        width: 100%;
+      }
+      
+      .btn-primary:hover {
+        background: #357abd;
+      }
+      
+      .btn-primary:active {
+        transform: scale(0.98);
+      }
+      
+      .btn-success {
+        background: #27ae60;
+      }
+      
+      .btn-success:hover {
+        background: #229954;
+      }
+      
+      .btn-danger {
+        background: #e74c3c;
+      }
+      
+      .btn-danger:hover {
+        background: #c0392b;
+      }
+      
+      .btn-secondary {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s ease;
+      }
+      
+      .btn-secondary:hover {
+        background: #5a6268;
+      }
+      
+      .btn-sm {
+        padding: 8px 20px;
+        font-size: 14px;
+        width: auto;
+      }
+      
+      .message {
+        padding: 12px;
+        border-radius: 8px;
+        margin-top: 16px;
+        display: none;
+      }
+      
+      .message.success {
+        display: block;
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      
+      .message.error {
+        display: block;
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+      
+      .table-container {
+        overflow-x: auto;
+      }
+      
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+      
+      th {
+        background: #f8f9fa;
+        text-align: left;
+        padding: 12px;
+        font-weight: 600;
+        color: #1a2332;
+        border-bottom: 2px solid #e1e5ea;
+      }
+      
+      td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #eef0f3;
+      }
+      
+      tr:hover {
+        background: #f8f9fa;
+      }
+      
+      .amount-positive {
+        color: #27ae60;
+        font-weight: 600;
+      }
+      
+      .amount-negative {
+        color: #e74c3c;
+        font-weight: 600;
+      }
+      
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+      
+      .stat-card {
+        background: #f8f9fa;
+        padding: 16px;
+        border-radius: 8px;
+        text-align: center;
+      }
+      
+      .stat-card .number {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1a2332;
+      }
+      
+      .stat-card .label {
+        font-size: 13px;
+        color: #6b7a8f;
+        margin-top: 4px;
+      }
+      
+      .loading {
+        text-align: center;
+        color: #6b7a8f;
+        padding: 20px;
+      }
+      
+      .report-controls {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        margin-bottom: 20px;
+        padding: 16px;
+        background: #f8f9fa;
+        border-radius: 8px;
+      }
+      
+      .report-controls .form-group {
+        margin-bottom: 0;
+        flex: 1;
+        min-width: 150px;
+      }
+      
+      .report-controls .form-group label {
+        font-size: 13px;
+        margin-bottom: 4px;
+      }
+      
+      .report-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 8px;
+      }
+      
+      .type-badge {
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      
+      .type-badge.expense {
+        background: #fee;
+        color: #c0392b;
+      }
+      
+      .type-badge.credit {
+        background: #eafaf1;
+        color: #27ae60;
+      }
+      
+      @media (max-width: 600px) {
+        body { padding: 12px; }
+        .card { padding: 16px; }
+        .tab-btn { padding: 8px 16px; font-size: 14px; }
+        h1 { font-size: 22px; }
+        .report-controls { flex-direction: column; }
+        .report-controls .form-group { min-width: 100%; }
+      }
+    </style>
+  </head>
+  
+  <body>
+    <h1>💰 Daily Expenses</h1>
+    
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="dashboard">🏠 Dashboard</button>
+      <button class="tab-btn" data-tab="add-expense">➕ Add Expense</button>
+      <button class="tab-btn" data-tab="add-credit">💳 Add Credit</button>
+      <button class="tab-btn" data-tab="history">📋 History</button>
+      <button class="tab-btn" data-tab="reports">📄 Reports</button>
+    </div>
+    
+    <!-- Dashboard Tab -->
+    <div id="dashboard" class="tab-content active">
+      <div class="card">
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-card">
+            <div class="number" id="totalExpenses">-</div>
+            <div class="label">Total Expenses</div>
+          </div>
+          <div class="stat-card">
+            <div class="number" id="totalCredits">-</div>
+            <div class="label">Total Credits</div>
+          </div>
+          <div class="stat-card">
+            <div class="number" id="balance">-</div>
+            <div class="label">Balance</div>
+          </div>
+          <div class="stat-card">
+            <div class="number" id="transactionCount">-</div>
+            <div class="label">Total Transactions</div>
+          </div>
+        </div>
+        <h3 style="margin-bottom: 12px;">Recent Transactions</h3>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Description</th>
+                <th>Notes</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody id="recentTransactions">
+              <tr><td colspan="5" class="loading">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Add Expense Tab -->
+    <div id="add-expense" class="tab-content">
+      <div class="card">
+        <h2 style="margin-bottom: 20px;">➕ Add Expense</h2>
+        <form id="expenseForm">
+          <div class="form-group">
+            <label>Date <span class="required">*</span></label>
+            <input type="date" id="expenseDate" required>
+          </div>
+          
+          <div class="form-group">
+            <label>Description <span class="required">*</span></label>
+            <input type="text" id="expenseDescription" placeholder="e.g., Office supplies, Lunch" required>
+          </div>
+          
+          <div class="form-group">
+            <label>Notes <span class="required">*</span></label>
+            <textarea id="expenseNotes" placeholder="Enter any additional details..." required></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label>Amount <span class="required">*</span></label>
+            <input type="number" id="expenseAmount" placeholder="0.00" step="0.01" min="0.01" required>
+          </div>
+          
+          <button type="submit" class="btn-primary">Add Expense</button>
+          <div id="expenseMessage" class="message"></div>
+        </form>
+      </div>
+    </div>
+    
+    <!-- Add Credit Tab -->
+    <div id="add-credit" class="tab-content">
+      <div class="card">
+        <h2 style="margin-bottom: 20px;">💳 Add Credit</h2>
+        <form id="creditForm">
+          <div class="form-group">
+            <label>Date <span class="required">*</span></label>
+            <input type="date" id="creditDate" required>
+          </div>
+          
+          <div class="form-group">
+            <label>Description <span class="required">*</span></label>
+            <input type="text" id="creditDescription" placeholder="e.g., Client payment, Refund" required>
+          </div>
+          
+          <div class="form-group">
+            <label>Notes <span class="required">*</span></label>
+            <textarea id="creditNotes" placeholder="Enter any additional details..." required></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label>Amount <span class="required">*</span></label>
+            <input type="number" id="creditAmount" placeholder="0.00" step="0.01" min="0.01" required>
+          </div>
+          
+          <button type="submit" class="btn-primary btn-success">Add Credit</button>
+          <div id="creditMessage" class="message"></div>
+        </form>
+      </div>
+    </div>
+    
+    <!-- History Tab -->
+    <div id="history" class="tab-content">
+      <div class="card">
+        <h2 style="margin-bottom: 20px;">📋 Transaction History</h2>
+        <div style="margin-bottom: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
+          <select id="historyFilter" style="padding: 8px 12px; border-radius: 6px; border: 2px solid #dce1e8; width: auto;">
+            <option value="all">All Transactions</option>
+            <option value="expense">Expenses Only</option>
+            <option value="credit">Credits Only</option>
+          </select>
+          <button onclick="loadHistory()" class="btn-primary btn-sm">Refresh</button>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Description</th>
+                <th>Notes</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody id="historyTable">
+              <tr><td colspan="5" class="loading">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Reports Tab -->
+    <div id="reports" class="tab-content">
+      <div class="card">
+        <h2 style="margin-bottom: 20px;">📄 Reports</h2>
+        
+        <div class="report-controls">
+          <div class="form-group">
+            <label>From Date</label>
+            <input type="date" id="reportFromDate">
+          </div>
+          <div class="form-group">
+            <label>To Date</label>
+            <input type="date" id="reportToDate">
+          </div>
+          <div class="report-buttons">
+            <button onclick="loadReport('expense')" class="btn-primary btn-sm btn-danger">Expense Report</button>
+            <button onclick="loadReport('credit')" class="btn-primary btn-sm btn-success">Credit Report</button>
+            <button onclick="loadReport('all')" class="btn-primary btn-sm">Combined Report</button>
+            <button onclick="clearReport()" class="btn-secondary btn-sm">Clear</button>
+          </div>
+        </div>
+        
+        <div id="reportSummary" style="display: none;">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="number" id="reportTotal">-</div>
+              <div class="label" id="reportTotalLabel">Total</div>
+            </div>
+            <div class="stat-card">
+              <div class="number" id="reportCount">-</div>
+              <div class="label">Number of Transactions</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Notes</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody id="reportTable">
+              <tr><td colspan="4" class="loading">Select date range and click a report button</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    
+    <script>
+      // Helper function to format date
+      function formatDate(dateStr) {
+        if (!dateStr) return '-';
+        try {
+          var date = new Date(dateStr);
+          if (isNaN(date.getTime())) return dateStr;
+          var days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+          var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          return days[date.getDay()] + ' ' + months[date.getMonth()] + ' ' + 
+                 String(date.getDate()).padStart(2, '0') + ' ' + date.getFullYear();
+        } catch(e) {
+          return dateStr;
+        }
+      }
+      
+      // Set default dates
+      document.addEventListener('DOMContentLoaded', function() {
+        var today = new Date();
+        var dateStr = today.getFullYear() + '-' + 
+                     String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                     String(today.getDate()).padStart(2, '0');
+        document.getElementById('expenseDate').value = dateStr;
+        document.getElementById('creditDate').value = dateStr;
+        
+        // Set default report dates (first day of month to today)
+        var firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        var firstDayStr = firstDay.getFullYear() + '-' + 
+                         String(firstDay.getMonth() + 1).padStart(2, '0') + '-' + 
+                         String(firstDay.getDate()).padStart(2, '0');
+        document.getElementById('reportFromDate').value = firstDayStr;
+        document.getElementById('reportToDate').value = dateStr;
+        
+        // Load dashboard
+        loadDashboard();
+      });
+      
+      // Tab switching
+      document.querySelectorAll('.tab-btn').forEach(function(button) {
+        button.addEventListener('click', function() {
+          document.querySelectorAll('.tab-btn').forEach(function(btn) {
+            btn.classList.remove('active');
+          });
+          document.querySelectorAll('.tab-content').forEach(function(content) {
+            content.classList.remove('active');
+          });
+          
+          this.classList.add('active');
+          var tabId = this.getAttribute('data-tab');
+          document.getElementById(tabId).classList.add('active');
+          
+          if (tabId === 'dashboard') loadDashboard();
+          if (tabId === 'history') loadHistory();
+        });
+      });
+      
+      // Expense form submission
+      document.getElementById('expenseForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        var date = document.getElementById('expenseDate').value;
+        var description = document.getElementById('expenseDescription').value;
+        var notes = document.getElementById('expenseNotes').value;
+        var amount = parseFloat(document.getElementById('expenseAmount').value);
+        
+        if (!date || !description || !notes || !amount) {
+          showMessage('expenseMessage', 'Please fill in all fields', 'error');
+          return;
+        }
+        
+        if (isNaN(amount) || amount <= 0) {
+          showMessage('expenseMessage', 'Please enter a valid positive amount', 'error');
+          return;
+        }
+        
+        var data = { date: date, description: description, notes: notes, amount: amount };
+        var btn = this.querySelector('button');
+        btn.disabled = true;
+        btn.textContent = 'Adding...';
+        
+        google.script.run
+          .withSuccessHandler(function(result) {
+            if (result.success) {
+              showMessage('expenseMessage', result.message, 'success');
+              document.getElementById('expenseForm').reset();
+              var today = new Date();
+              var dateStr = today.getFullYear() + '-' + 
+                           String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                           String(today.getDate()).padStart(2, '0');
+              document.getElementById('expenseDate').value = dateStr;
+              document.getElementById('expenseAmount').value = '';
+              setTimeout(function() { loadDashboard(); }, 500);
+            } else {
+              showMessage('expenseMessage', result.message, 'error');
+            }
+            btn.disabled = false;
+            btn.textContent = 'Add Expense';
+          })
+          .withFailureHandler(function(error) {
+            showMessage('expenseMessage', 'Error: ' + error.message, 'error');
+            btn.disabled = false;
+            btn.textContent = 'Add Expense';
+          })
+          .addExpense(data);
+      });
+      
+      // Credit form submission
+      document.getElementById('creditForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        var date = document.getElementById('creditDate').value;
+        var description = document.getElementById('creditDescription').value;
+        var notes = document.getElementById('creditNotes').value;
+        var amount = parseFloat(document.getElementById('creditAmount').value);
+        
+        if (!date || !description || !notes || !amount) {
+          showMessage('creditMessage', 'Please fill in all fields', 'error');
+          return;
+        }
+        
+        if (isNaN(amount) || amount <= 0) {
+          showMessage('creditMessage', 'Please enter a valid positive amount', 'error');
+          return;
+        }
+        
+        var data = { date: date, description: description, notes: notes, amount: amount };
+        var btn = this.querySelector('button');
+        btn.disabled = true;
+        btn.textContent = 'Adding...';
+        
+        google.script.run
+          .withSuccessHandler(function(result) {
+            if (result.success) {
+              showMessage('creditMessage', result.message, 'success');
+              document.getElementById('creditForm').reset();
+              var today = new Date();
+              var dateStr = today.getFullYear() + '-' + 
+                           String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                           String(today.getDate()).padStart(2, '0');
+              document.getElementById('creditDate').value = dateStr;
+              document.getElementById('creditAmount').value = '';
+              setTimeout(function() { loadDashboard(); }, 500);
+            } else {
+              showMessage('creditMessage', result.message, 'error');
+            }
+            btn.disabled = false;
+            btn.textContent = 'Add Credit';
+          })
+          .withFailureHandler(function(error) {
+            showMessage('creditMessage', 'Error: ' + error.message, 'error');
+            btn.disabled = false;
+            btn.textContent = 'Add Credit';
+          })
+          .addCredit(data);
+      });
+      
+      function showMessage(elementId, text, type) {
+        var el = document.getElementById(elementId);
+        el.textContent = text;
+        el.className = 'message ' + type;
+        setTimeout(function() { el.className = 'message'; }, 5000);
+      }
+      
+      // Load dashboard data
+      function loadDashboard() {
+        document.getElementById('recentTransactions').innerHTML = '<tr><td colspan="5" class="loading">Loading...</td></tr>';
+        
+        google.script.run
+          .withSuccessHandler(function(data) {
+            document.getElementById('totalExpenses').textContent = data.totalExpenses.toFixed(2);
+            document.getElementById('totalCredits').textContent = data.totalCredits.toFixed(2);
+            document.getElementById('balance').textContent = data.balance.toFixed(2);
+            document.getElementById('transactionCount').textContent = data.transactionCount;
+            
+            var tbody = document.getElementById('recentTransactions');
+            if (!data.recentTransactions || data.recentTransactions.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="5" class="loading">No transactions found</td></tr>';
+            } else {
+              var html = '';
+              for (var i = 0; i < data.recentTransactions.length; i++) {
+                var t = data.recentTransactions[i];
+                var typeColor = t.type === 'Expense' ? 'expense' : 'credit';
+                var sign = t.type === 'Expense' ? '-' : '+';
+                var amountClass = t.type === 'Expense' ? 'amount-negative' : 'amount-positive';
+                html += '<tr>' +
+                  '<td>' + formatDate(t.date) + '</td>' +
+                  '<td><span class="type-badge ' + typeColor + '">' + t.type + '</span></td>' +
+                  '<td>' + t.description + '</td>' +
+                  '<td>' + (t.notes || '-') + '</td>' +
+                  '<td class="' + amountClass + '">' + sign + t.amount.toFixed(2) + '</td>' +
+                '</tr>';
+              }
+              tbody.innerHTML = html;
+            }
+          })
+          .withFailureHandler(function(error) {
+            document.getElementById('recentTransactions').innerHTML = '<tr><td colspan="5" class="loading">Error loading data</td></tr>';
+          })
+          .getDashboardData();
+      }
+      
+      // Load history
+      function loadHistory() {
+        var filter = document.getElementById('historyFilter').value;
+        document.getElementById('historyTable').innerHTML = '<tr><td colspan="5" class="loading">Loading...</td></tr>';
+        
+        google.script.run
+          .withSuccessHandler(function(data) {
+            var tbody = document.getElementById('historyTable');
+            if (!data || data.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="5" class="loading">No transactions found</td></tr>';
+            } else {
+              var html = '';
+              for (var i = 0; i < data.length; i++) {
+                var t = data[i];
+                var typeColor = t.type === 'Expense' ? 'expense' : 'credit';
+                var sign = t.type === 'Expense' ? '-' : '+';
+                var amountClass = t.type === 'Expense' ? 'amount-negative' : 'amount-positive';
+                html += '<tr>' +
+                  '<td>' + formatDate(t.date) + '</td>' +
+                  '<td><span class="type-badge ' + typeColor + '">' + t.type + '</span></td>' +
+                  '<td>' + t.description + '</td>' +
+                  '<td>' + (t.notes || '-') + '</td>' +
+                  '<td class="' + amountClass + '">' + sign + t.amount.toFixed(2) + '</td>' +
+                '</tr>';
+              }
+              tbody.innerHTML = html;
+            }
+          })
+          .withFailureHandler(function(error) {
+            document.getElementById('historyTable').innerHTML = '<tr><td colspan="5" class="loading">Error loading data</td></tr>';
+          })
+          .getHistory(filter);
+      }
+      
+      // Report functions
+      function loadReport(type) {
+        var fromDate = document.getElementById('reportFromDate').value;
+        var toDate = document.getElementById('reportToDate').value;
+        
+        if (!fromDate || !toDate) {
+          alert('Please select both From Date and To Date');
+          return;
+        }
+        
+        if (fromDate > toDate) {
+          alert('From Date cannot be later than To Date');
+          return;
+        }
+        
+        document.getElementById('reportTable').innerHTML = '<tr><td colspan="4" class="loading">Loading...</td></tr>';
+        document.getElementById('reportSummary').style.display = 'none';
+        
+        google.script.run
+          .withSuccessHandler(function(data) {
+            var tbody = document.getElementById('reportTable');
+            
+            // Update summary
+            document.getElementById('reportSummary').style.display = 'block';
+            var totalLabel = document.getElementById('reportTotalLabel');
+            var totalColor = '#1a2332';
+            
+            if (type === 'expense') {
+              totalLabel.textContent = 'Total Expenses';
+              totalColor = '#e74c3c';
+            } else if (type === 'credit') {
+              totalLabel.textContent = 'Total Credits';
+              totalColor = '#27ae60';
+            } else {
+              totalLabel.textContent = 'Net Total';
+              totalColor = '#1a2332';
+            }
+            
+            var totalEl = document.getElementById('reportTotal');
+            totalEl.textContent = data.total.toFixed(2);
+            totalEl.style.color = totalColor;
+            document.getElementById('reportCount').textContent = data.count;
+            
+            if (!data.transactions || data.transactions.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="4" class="loading">No transactions found for the selected date range</td></tr>';
+            } else {
+              var html = '';
+              for (var i = 0; i < data.transactions.length; i++) {
+                var t = data.transactions[i];
+                var sign = t.type === 'Expense' ? '-' : '+';
+                var amountClass = t.type === 'Expense' ? 'amount-negative' : 'amount-positive';
+                html += '<tr>' +
+                  '<td>' + formatDate(t.date) + '</td>' +
+                  '<td>' + t.description + '</td>' +
+                  '<td>' + (t.notes || '-') + '</td>' +
+                  '<td class="' + amountClass + '">' + sign + t.amount.toFixed(2) + '</td>' +
+                '</tr>';
+              }
+              tbody.innerHTML = html;
+            }
+          })
+          .withFailureHandler(function(error) {
+            console.error('Report error:', error);
+            document.getElementById('reportTable').innerHTML = '<tr><td colspan="4" class="loading">Error loading report: ' + error.message + '</td></tr>';
+          })
+          .getReport(fromDate, toDate, type);
+      }
+      
+      function clearReport() {
+        document.getElementById('reportTable').innerHTML = '<tr><td colspan="4" class="loading">Select date range and click a report button</td></tr>';
+        document.getElementById('reportSummary').style.display = 'none';
+      }
+    </script>
+  </body>
+</html>
